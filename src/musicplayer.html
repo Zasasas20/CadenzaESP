@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<style>
+
+html, body{
+    margin: 0;
+    height: 100%;
+}
+
+body{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+#Info{
+    display: flex;
+    align-items:end;
+    gap: 20px;
+}
+
+#Elements{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+
+</style>
+<head>
+    <title>Cadenza</title>
+</head>
+<body>
+    <div id = 'Elements'>
+        <div id = 'Info'>
+            <div class = 'textBox'>
+                <p>Radio Channel: </p>
+                <input type='text' id = 'Music'>
+            </div>
+            <div class = 'Button'>
+                <button id='Change'>Change Channel</button> 
+            </div>
+        </div>
+        <div class = 'Button'>
+            <button id='Reset'>Reset Settings</button> 
+        </div>
+    </div>
+</body>
+<script>
+    var Socket;
+    document.getElementById('Reset').addEventListener('click', reset);
+    document.getElementById('Change').addEventListener('click', change);
+
+    function init(){
+        Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
+        Socket.onmessage = function(event) {};
+    }
+
+    function reset(){
+        var data = {
+            Command: 'Reset'
+        };
+        Socket.send(JSON.stringify(data));
+    }
+
+    function change(){
+        var data = {
+            Command: 'Change',
+            Channel: document.getElementById('Music').value
+        };
+        Socket.send(JSON.stringify(data));
+    }
+
+    window.onload = function(event){
+        init();
+        console.log('Webiste Loads');
+    }
+
+</script>
+</html>
