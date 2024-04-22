@@ -35,9 +35,18 @@ body{
 </head>
 <body>
     <div id = 'Elements'>
+        <div id = 'Menu'>
+            <label for='Radio-Channel'>Choose a radio category:</label> 
+                <select name='Channels' id='Channels'>
+                    <option value='https://strm112.1.fm/bossanova_mobile_mp3?aw_0_req.gdpr=true'>Bossa Nova</option> 
+                    <option value='http://stream.antennethueringen.de/live/aac-64/stream.antennethueringen.de/'>Hip Hop</option> 
+                    <option value='http://curiosity.shoutca.st:6035/;'>Arabic</option> 
+                    <option value='Custom'>Custom</option> 
+                </select>
+        </div>
         <div id = 'Info'>
-            <div class = 'textBox'>
-                <p>Radio Channel: </p>
+            <div class = 'textBox' id='Box' hidden>
+                <p>Radio Channel URL: </p>
                 <input type='text' id = 'Music'>
             </div>
             <div class = 'Button'>
@@ -53,6 +62,7 @@ body{
     var Socket;
     document.getElementById('Reset').addEventListener('click', reset);
     document.getElementById('Change').addEventListener('click', change);
+    document.getElementById('Channels').addEventListener('change', category);
 
     function init(){
         Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
@@ -68,15 +78,31 @@ body{
 
     function change(){
         var data = {
-            Command: 'Change',
-            Channel: document.getElementById('Music').value
+            Command: 'Change'
         };
+        if (document.getElementById('Channels').value === 'Custom'){
+            data.Link = document.getElementById('Music').value;
+        }
+        else{
+            data.Link = document.getElementById('Channels').value;
+        }
         Socket.send(JSON.stringify(data));
+        console.log(data);
+    }
+
+    function category(){
+        let choice = document.getElementById('Channels').value;
+        if (choice === 'Custom'){
+            document.getElementById('Box').hidden = false;
+        }
+        else{
+            document.getElementById('Box').hidden = true;
+        }
     }
 
     window.onload = function(event){
         init();
-        console.log('Webiste Loads');
+        console.log('Website Loads');
     }
 
 </script>
