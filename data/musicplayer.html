@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<style>
+
+html, body{
+    margin: 0;
+    height: 100%;
+}
+
+body{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.Info{
+    display: flex;
+    align-items:end;
+    gap: 20px;
+}
+
+#Elements{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+
+</style>
+<head>
+    <title>Cadenza</title>
+</head>
+<body>
+    <div id = 'Elements'>
+        <div id = 'Menu'>
+            <label for='Radio-Channel'>Choose a radio category:</label> 
+                <select name='Channels' id='Channels'>
+                    <option value='https://strm112.1.fm/bossanova_mobile_mp3?aw_0_req.gdpr=true'>Bossa Nova</option> 
+                    <option value='http://stream.antennethueringen.de/live/aac-64/stream.antennethueringen.de/'>Hip Hop</option> 
+                    <option value='http://curiosity.shoutca.st:6035/;'>Arabic</option> 
+                    <option value='Custom'>Custom</option> 
+                </select>
+        </div>
+        <div class = 'Info'>
+            <div class = 'textBox' id='Box' hidden>
+                <p>Radio Channel URL: </p>
+                <input type='text' id = 'Music'>
+            </div>
+            <div class = 'Button'>
+                <button id='Change'>Change Channel</button> 
+            </div>
+            <div class = 'Button'>
+                <button id='Default'>Make Default</button> 
+            </div>
+        </div>
+        <div class = 'Info'>
+            <div class = 'Button'>
+                <button id='Reset'>Reset Settings</button> 
+            </div>
+            <div class = 'Button'>
+                <button id='ResetA'>Reset Default</button> 
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    var Socket;
+    document.getElementById('Reset').addEventListener('click', reset);
+    document.getElementById('ResetA').addEventListener('click', resetAudio);
+    document.getElementById('Change').addEventListener('click', change);
+    document.getElementById('Channels').addEventListener('change', category);
+    document.getElementById('Default').addEventListener('click', defaultC);
+
+    function init(){
+        Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
+        Socket.onmessage = function(event) {
+            processData(event);
+        };
+    }
+
+    function defaultC(){
+        var data = getLink();
+        data.Command = 'Default';
+        send(data);
+    }
+
+    function processData(event){
+        var object = JSON.parse(event.data);
+        console.log('Received:');
+        console.log(object);
+
+        if (object.Command === "New"){
+            if (object.Type === null){
+                document.getElementById('Channels').selectedIndex = 0;
+            }
+            else{
+                document.getElementById('Channels').selectedIndex = parseInt(object.Type);
+            }
+            category();
+            document.getElementById('Music').value = object.Link;
+        }
+    }
+
+    function reset(){
+        var data = {
+            Command: 'Reset',
+            Config: 'All'
+        };
+        send(data);
+    }
+
+    function resetAudio(){
+        var data = {
+            Command: 'Reset',
+            Config: 'Audio'
+        };
+        send(data);
+    }
+
+    function change(){
+        send(getLink());
+    }
+
+    function getLink(){
+        var data = {
+            Command: 'Change'
+        };
+        channel = document.getElementById('Channels');
+        if (channel.value === 'Custom'){
+            data.Link = document.getElementById('Music').value;
+        }
+        else{
+            data.Link = channel.value;
+        }
+        data.Type = channel.selectedIndex.toString();
+        console.log(data);
+        return data;
+    }
+    
+    function send(data){
+        Socket.send(JSON.stringify(data));
+    }
+
+    function category(){
+        let choice = document.getElementById('Channels').value;
+        if (choice === 'Custom'){
+            document.getElementById('Box').hidden = false;
+        }
+        else{
+            document.getElementById('Box').hidden = true;
+        }
+    }
+
+    window.onload = function(event){
+        init();
+        console.log('Website Loads');
+    }
+
+</script>
+</html>
