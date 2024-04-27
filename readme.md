@@ -1,5 +1,5 @@
 # Cadenza
-Open source code for the cadenza project. VERSION 0.6
+Open source code for the cadenza project. VERSION 0.8
 
 ## What
 What is cadenza? Cadenza is a small ESP32 based I2S audio player that allows users to play music through a hosted webserver.
@@ -9,18 +9,16 @@ After applying for a lot of internships and getting rejected from them, I decide
 
 ## CURRENT VERSION
 
-Cadenza has I2S based audio, and has been tested.
+Cadenza now allows the user to store a default radio! 
 
-It plays radio channels provided through the webserver, with three default channels on load (Hip Hop, Bossa Nova, Arabic)
+Cadenza has also transitioned to a slightly more asynchronous approach. Thus increasing performance.
 
-Cadenza also allows the user to enter a custom radio channel URL, and instantly switches to said channel.
+Refactoring will take a little bit of time as I don't want the project to be an abstraction mess, it'll probably be one or two classes with little to no abstraction to them for simplicity's sake. Do not expect any building patterns, cadenza is a simple passion project and not an award winning competition project.
 
 ## NEXT VERSION
 
 - Refactor connection code into its own library/class
 - Comment the code
-- Test and document radio capability
-- Add default radio functionality
 
 ## Functionalities
 Below is a list of promised functionalities with their expected version date. 
