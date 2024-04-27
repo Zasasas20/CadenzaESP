@@ -14,7 +14,7 @@ body{
 
 }
 
-#Info{
+.Info{
     display: flex;
     align-items:end;
     gap: 20px;
@@ -44,7 +44,7 @@ body{
                     <option value='Custom'>Custom</option> 
                 </select>
         </div>
-        <div id = 'Info'>
+        <div class = 'Info'>
             <div class = 'textBox' id='Box' hidden>
                 <p>Radio Channel URL: </p>
                 <input type='text' id = 'Music'>
@@ -52,42 +52,96 @@ body{
             <div class = 'Button'>
                 <button id='Change'>Change Channel</button> 
             </div>
+            <div class = 'Button'>
+                <button id='Default'>Make Default</button> 
+            </div>
         </div>
-        <div class = 'Button'>
-            <button id='Reset'>Reset Settings</button> 
+        <div class = 'Info'>
+            <div class = 'Button'>
+                <button id='Reset'>Reset Settings</button> 
+            </div>
+            <div class = 'Button'>
+                <button id='ResetA'>Reset Default</button> 
+            </div>
         </div>
     </div>
 </body>
 <script>
     var Socket;
     document.getElementById('Reset').addEventListener('click', reset);
+    document.getElementById('ResetA').addEventListener('click', resetAudio);
     document.getElementById('Change').addEventListener('click', change);
     document.getElementById('Channels').addEventListener('change', category);
+    document.getElementById('Default').addEventListener('click', defaultC);
 
     function init(){
         Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
-        Socket.onmessage = function(event) {};
+        Socket.onmessage = function(event) {
+            processData(event);
+        };
+    }
+
+    function defaultC(){
+        var data = getLink();
+        data.Command = 'Default';
+        send(data);
+    }
+
+    function processData(event){
+        var object = JSON.parse(event.data);
+        console.log('Received:');
+        console.log(object);
+
+        if (object.Command === "New"){
+            if (object.Type === null){
+                document.getElementById('Channels').selectedIndex = 0;
+            }
+            else{
+                document.getElementById('Channels').selectedIndex = parseInt(object.Type);
+            }
+            category();
+            document.getElementById('Music').value = object.Link;
+        }
     }
 
     function reset(){
         var data = {
-            Command: 'Reset'
+            Command: 'Reset',
+            Config: 'All'
         };
-        Socket.send(JSON.stringify(data));
+        send(data);
+    }
+
+    function resetAudio(){
+        var data = {
+            Command: 'Reset',
+            Config: 'Audio'
+        };
+        send(data);
     }
 
     function change(){
+        send(getLink());
+    }
+
+    function getLink(){
         var data = {
             Command: 'Change'
         };
-        if (document.getElementById('Channels').value === 'Custom'){
+        channel = document.getElementById('Channels');
+        if (channel.value === 'Custom'){
             data.Link = document.getElementById('Music').value;
         }
         else{
-            data.Link = document.getElementById('Channels').value;
+            data.Link = channel.value;
         }
-        Socket.send(JSON.stringify(data));
+        data.Type = channel.selectedIndex.toString();
         console.log(data);
+        return data;
+    }
+    
+    function send(data){
+        Socket.send(JSON.stringify(data));
     }
 
     function category(){
