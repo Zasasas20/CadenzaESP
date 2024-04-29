@@ -1,6 +1,9 @@
 #include <Preferences.h>
 #include "nvs_flash.h"
 
+#ifndef memoryManager_H
+#define memoryManager_H
+
 class memoryManager{
     private:
         Preferences pref_;
@@ -17,3 +20,5 @@ class memoryManager{
         String getSSID();
         String getPass();
 };
+
+#endif
