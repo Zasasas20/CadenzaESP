@@ -122,7 +122,3 @@ void WebServer::restart(){
     delay(200);
     ESP.restart();
 }
-
-void WebServer::updateAudio(int volume){
-    audio_->setVolume(volume);
-}

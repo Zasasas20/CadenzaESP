@@ -1,5 +1,6 @@
 #include "memorySocket.h"
 
+
 bool memoryManager::isSetup(){
     pref_.begin("wifiCreds", true);
     bool status = pref_.getBool("Setup", false);

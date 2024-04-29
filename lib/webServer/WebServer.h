@@ -3,16 +3,18 @@
 
 #pragma once
 
+/// @brief Datastructure that stores most recent link and type of audio
 struct AudioInfo{
   const char * Link = "";
   const char * Type = "";
 };
 
+/// @brief Webserver that handles connection to audio
 class WebServer : public IWebServer{
 
     private:
         std::unique_ptr<memoryManager> mem_;
-        Audio* audio_;
+        Audio* audio_; // Pointer to audio object for link manipulation
         AsyncWebServer server_ = AsyncWebServer(80);
         WebSocketsServer webSocket_ = WebSocketsServer(81);
 
@@ -27,9 +29,18 @@ class WebServer : public IWebServer{
 
         void handler(uint8_t num, WStype_t type, uint8_t * payload, size_t length) override;
 
+        /// @brief Sends currently playing details to new connecting client to keep them updated
+        /// @param M_Type Type of link
+        /// @param M_Link Link
         void sendNew(const char * M_Type, const char * M_Link);
+
+        /// @brief Loads default audio link from memory
         void loadAudio();
+
+        /// @brief Updates audio with new link
         void update();
+
+        /// @brief Restarts cadenza
         void restart();
 
     public:
@@ -38,6 +49,4 @@ class WebServer : public IWebServer{
 
         void connect() override;
         void loop() override;
-
-        void updateAudio(int volume) override;
 };

@@ -22,6 +22,7 @@ void setup() {
 
   audio.setVolume(10);
 
+  // Create new Server instance based on ssid/password status
   if (mem->isSetup()){
     Serial.println("Read");
     server = std::unique_ptr<WebServer>(new WebServer(std::move(mem), &audio));

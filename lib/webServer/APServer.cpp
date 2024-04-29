@@ -58,7 +58,3 @@ void APServer::handler(uint8_t num, WStype_t type, uint8_t * payload, size_t len
       }
   }
 }
-
-void APServer::updateAudio(int volume){
-  Serial.println(volume);
-}
