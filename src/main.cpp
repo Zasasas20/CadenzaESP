@@ -4,9 +4,8 @@
 #include <WebSocketsServer.h>
 #include <ArduinoJson.h>
 #include <Audio.h>
-#include <Preferences.h>
 #include <SPIFFS.h>
-#include "nvs_flash.h"
+#include <../lib/memorySocket/memorySocket.h>
 
 #define MAXCONNECT 5
 
@@ -15,6 +14,8 @@
 #define I2S_LRC 25
 
 #define VOL 39
+
+memoryManager mem;
 
 struct {
   const char * Link;
@@ -30,7 +31,6 @@ StaticJsonDocument<200> doc_tx;
 
 AsyncWebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
-Preferences pref;
 
 const char * AP_SSID = "CadenzaAP";
 const char * AP_password = "PASSWORD";
@@ -43,29 +43,9 @@ void connectionHandler(byte num, WStype_t type, uint8_t * payload, size_t length
 void setupHandler(byte num, WStype_t type, uint8_t * payload, size_t length);
 void connectToWifi();
 void APMode();
-bool isSetup();
-void writeNetwork(const char * ID, const char * PASS);
-void reconnectToWifi();
-void resetConfigs();
-void writeDefault(const char * Link);
 void sendNew(const char * M_Type, const char * M_Link);
 void loadAudio();
-void resetAudio();
 void update();
-
-void resetConfigs(){
-  Serial.println("Resetting");
-  nvs_flash_erase();
-  nvs_flash_init();
-  Serial.println("Reset complete, restarting...");
-  delay(1000);
-  ESP.restart();
-}
-
-void resetAudio(){
-  Serial.println("Resetting audio");
-  writeDefault("");
-}
 
 void update(){
   audio.connecttohost(AudioInfo.Link);
@@ -86,14 +66,14 @@ void connectionHandler(byte num, WStype_t type, uint8_t * payload, size_t length
         if (strcmp(Command, "Reset") == 0){
           const char * Config = doc_rx["Config"];
           if (strcmp(Config, "All") == 0){
-            resetConfigs();
+            mem.resetConfig();
           }
           else{
-            resetAudio();
+            mem.resetAudio();
           }
         }
         else if (strcmp(Command, "Default") == 0){
-          writeDefault(doc_rx["Link"]);
+          mem.writeDefault(doc_rx["Link"]);
         }
         else{
           AudioInfo.Link = doc_rx["Link"];
@@ -121,7 +101,7 @@ void setupHandler(byte num, WStype_t type, uint8_t * payload, size_t length){
         const char* ID = doc_rx["SSID"];
         const char* PASS = doc_rx["PASSWORD"];
         if(strcmp(ID, "") != 0 && strcmp(PASS, "") != 0){
-          writeNetwork(ID, PASS);
+          mem.writeNetwork(ID, PASS);
           Serial.println("Stored");
           WiFi.softAPdisconnect(true);
           Serial.println("Disconnected");
@@ -137,10 +117,8 @@ void setupHandler(byte num, WStype_t type, uint8_t * payload, size_t length){
 
 void connectToWifi(){
 
-  pref.begin("wifiCreds", true);
-  String ssid = pref.getString("SSID", "");
-  String pass = pref.getString("PASS", "");
-  pref.end();
+  String ssid = mem.getSSID();
+  String pass = mem.getPass();
 
   Serial.println(ssid);
   Serial.println(pass);
@@ -174,13 +152,13 @@ void connectToWifi(){
   webSocket.onEvent(connectionHandler);
 
   server.begin();
+
+  loadAudio();
 }
 
 void APMode(){
 
-  pref.begin("wifiCreds", false);
-  pref.putBool("Setup", false);
-  pref.end();
+  mem.disableWiFi();
 
   WiFi.softAPConfig(AP_IP, AP_GATEWAY, AP_SUBNET);
 
@@ -202,29 +180,6 @@ void APMode(){
   Serial.println("Server Initialized");
 }
 
-bool isSetup(){
-  pref.begin("wifiCreds", true);
-  bool status = pref.getBool("Setup", false);
-  pref.end();
-  return status;
-}
-
-void writeNetwork(const char * ID, const char * PASS){
-  Serial.println("Writing details");
-  pref.begin("wifiCreds", false);
-  pref.putString("SSID", ID);
-  pref.putString("PASS", PASS);
-  pref.putBool("Setup", true);
-  pref.end();
-}
-
-void writeDefault(const char * Link){
-  Serial.println("Writing details");
-  pref.begin("musicDetails", false);
-  pref.putString("Default", Link);
-  pref.end();
-}
-
 void sendNew(const char * M_Type, const char * M_Link){
   String Jstring = "";
   StaticJsonDocument<200> doc_tx;
@@ -237,20 +192,19 @@ void sendNew(const char * M_Type, const char * M_Link){
 }
 
 void loadAudio(){
-  Serial.println("Reading details");
-  pref.begin("musicDetails", true);
-  audio.connecttohost(pref.getString("Default", "").c_str());
-  pref.end();
+  audio.connecttohost(mem.getDefault().c_str());
 }
 
 void setup() {
   Serial.begin(9600);
 
+  Serial.println("Started...");
+
   if(!SPIFFS.begin()){
     Serial.println("Failed to initialize SPIFFS");
   }
 
-  if (isSetup()){
+  if (mem.isSetup()){
     connectToWifi();
   }
   else{
@@ -260,8 +214,6 @@ void setup() {
   audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
 
   audio.setVolume(volume);
-
-  loadAudio();
 }
 
 void loop() {
