@@ -57,12 +57,9 @@ body{
             </div>
         </div>
         <div class = 'Info'>
-            <div class = 'Button'>
-                <button id='Reset'>Reset Settings</button> 
-            </div>
-            <div class = 'Button'>
-                <button id='ResetA'>Reset Default</button> 
-            </div>
+            <button id='Reset'>Reset Settings</button> 
+            <button id='ResetA'>Reset Default</button> 
+            <button id='Restart'>Restart Cadenza</button>
         </div>
     </div>
 </body>
@@ -73,6 +70,7 @@ body{
     document.getElementById('Change').addEventListener('click', change);
     document.getElementById('Channels').addEventListener('change', category);
     document.getElementById('Default').addEventListener('click', defaultC);
+    document.getElementById('Restart').addEventListener('click', restart);
 
     function init(){
         Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
@@ -108,6 +106,13 @@ body{
         var data = {
             Command: 'Reset',
             Config: 'All'
+        };
+        send(data);
+    }
+
+    function restart(){
+        var data = {
+            Command: "Restart"
         };
         send(data);
     }
