@@ -7,10 +7,6 @@ audio_(audio)
     if(!SPIFFS.begin()){
         Serial.println("Failed to initialize SPIFFS");
     }
-
-    audio_->setPinout(26, 25, 22);
-
-    audio_->setVolume(10);
 }
 
 void WebServer::connect(){
@@ -84,6 +80,10 @@ void WebServer::handler(uint8_t num, WStype_t type, uint8_t * payload, size_t le
             }
             else if (strcmp(Command, "Default") == 0){
                 mem_->writeDefault(doc_rx_["Link"]);
+            }
+            else if (strcmp(Command, "Restart") == 0){
+                Serial.println("Received command: Restart");
+                restart();
             }
             else{
                 INF_.Link = doc_rx_["Link"];

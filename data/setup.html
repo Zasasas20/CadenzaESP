@@ -41,12 +41,14 @@ body{
         </div>
         <div id = 'Button'>
             <button id='Submit'>Connect</button> 
-        </div>
+            <button id='Restart'>Restart</button>
+        </div> 
     </div>
 </body>
 <script>
     var Socket;
     document.getElementById('Submit').addEventListener('click', send_info);
+    document.getElementById('Restart').addEventListener('click', restart);
 
     function init(){
         Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
@@ -65,6 +67,13 @@ body{
     window.onload = function(event){
         init();
         console.log('Webiste Loads');
+    }
+
+    function restart(){
+        var data = {
+            Command: "Restart"
+        };
+        Socket.send(JSON.stringify(data));
     }
 
 </script>
